@@ -136,6 +136,8 @@ markdown-graph/
 
 ## Design Philosophy
 
+> For detailed design, entry points, and feature roadmap, see [DESIGN.md](DESIGN.md) ([中文](DESIGN.zh-CN.md))
+
 - **Docs as Code**: Manage document versions with Git, describe relationships with JSON
 - **Traceable**: Every transformation has complete context records
 - **Composable**: Transformations can be chained to build complex document engineering pipelines
