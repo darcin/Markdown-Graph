@@ -1,0 +1,45 @@
+{
+  "version": "0.1.0",
+  "name": "simple-merge-example",
+  "description": "示例：将会议笔记与技术调研合并为版本规划摘要",
+  "nodes": [
+    {
+      "id": "n-input-a",
+      "path": "examples/simple-merge/input-a.md",
+      "title": "会议笔记 - 产品规划会",
+      "tags": ["meeting", "planning"],
+      "created_at": "2026-04-05T09:00:00Z"
+    },
+    {
+      "id": "n-input-b",
+      "path": "examples/simple-merge/input-b.md",
+      "title": "技术调研 - 搜索方案对比",
+      "tags": ["research", "search"],
+      "created_at": "2026-04-05T09:30:00Z"
+    },
+    {
+      "id": "n-output",
+      "path": "examples/simple-merge/output.md",
+      "title": "v2.1 版本规划摘要",
+      "tags": ["planning", "summary"],
+      "created_at": "2026-04-05T10:30:00Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-example-01",
+      "sources": ["n-input-a", "n-input-b"],
+      "targets": ["n-output"],
+      "transform": {
+        "type": "merge",
+        "description": "整合产品会议纪要与技术调研报告，生成版本规划摘要",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "skills": [],
+        "prompt_summary": "将两份文档的关键信息整合为一份简洁的版本规划文档，突出决策结论"
+      },
+      "context": "v2.1 版本规划阶段",
+      "timestamp": "2026-04-05T10:30:00Z"
+    }
+  ]
+}

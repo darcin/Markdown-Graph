@@ -1,0 +1,15 @@
+{
+  "id": "e-example-01",
+  "sources": ["n-input-a", "n-input-b"],
+  "targets": ["n-output"],
+  "transform": {
+    "type": "merge",
+    "description": "整合产品会议纪要与技术调研报告，生成版本规划摘要",
+    "agent": "copilot",
+    "model": "claude-opus-4",
+    "skills": [],
+    "prompt_summary": "将两份文档的关键信息整合为一份简洁的版本规划文档，突出决策结论"
+  },
+  "context": "v2.1 版本规划阶段，需要将讨论结果与技术调研结论合并为可执行的规划",
+  "timestamp": "2026-04-05T10:30:00Z"
+}

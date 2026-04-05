@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/markdown-graph/schema/node.schema.json",
+  "title": "Document Node",
+  "description": "A markdown document node in the graph",
+  "type": "object",
+  "required": ["id", "path"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the node"
+    },
+    "path": {
+      "type": "string",
+      "description": "Relative path to the markdown file"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Tags for categorization"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creation timestamp (ISO 8601)"
+    },
+    "checksum": {
+      "type": "string",
+      "description": "Content hash for version tracking (e.g. SHA-256)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional arbitrary metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

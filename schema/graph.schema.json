@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/markdown-graph/schema/graph.schema.json",
+  "title": "Markdown Graph",
+  "description": "A directed graph of markdown document transformations",
+  "type": "object",
+  "required": ["nodes", "edges"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "0.1.0",
+      "description": "Schema version"
+    },
+    "name": {
+      "type": "string",
+      "description": "Graph name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Graph description"
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "node.schema.json" },
+      "description": "All document nodes"
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "edge.schema.json" },
+      "description": "All transformation edges"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional graph-level metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

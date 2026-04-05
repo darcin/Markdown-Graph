@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/markdown-graph/schema/edge.schema.json",
+  "title": "Transform Edge",
+  "description": "A directed edge representing a conversation/transformation between documents",
+  "type": "object",
+  "required": ["id", "sources", "targets", "transform"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the edge"
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 0,
+      "description": "Input node IDs (empty for creation from scratch)"
+    },
+    "targets": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Output node IDs"
+    },
+    "transform": {
+      "$ref": "#/definitions/Transform"
+    },
+    "context": {
+      "type": "string",
+      "description": "Additional context or system prompt summary"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the transformation was performed"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional arbitrary metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Transform": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "extract", "expand", "create", "rewrite",
+            "merge", "compare", "compress", "split",
+            "translate", "format", "annotate", "chain", "custom"
+          ],
+          "description": "Type of transformation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Directional description of this conversation round"
+        },
+        "agent": {
+          "type": "string",
+          "description": "Agent used (e.g. copilot, cursor, custom)"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model used (e.g. claude-opus-4, gpt-4o)"
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Skills / plugins invoked"
+        },
+        "prompt_summary": {
+          "type": "string",
+          "description": "Brief summary of the prompt (not the full prompt)"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
