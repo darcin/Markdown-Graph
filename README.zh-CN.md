@@ -171,6 +171,12 @@ mg prompt-graph -g graphs/main.graph.json
 | `decide` | 决策（决策点推演、方案选型、trade-off 分析） |
 | `decompose` | 分解（从文档生成任务列表、从 PRD 拆 story） |
 | `verify` | 验证（一致性检查、fact-check、逻辑校验） |
+| `synthesize` | 综合归纳（从多源材料产生新洞察/框架） |
+| `evaluate` | 评估（判断质量、可行性、完整性，含主观判断） |
+| `brainstorm` | 发散思考（围绕问题生成多个方向/方案） |
+| `prioritize` | 排序（优先级排序、任务排期、功能排序） |
+| `classify` | 分类（标签化、归类、情感分类） |
+| `infer` | 推理（从现象推导根因、从数据推论趋势） |
 
 **复合 / 自定义**：
 

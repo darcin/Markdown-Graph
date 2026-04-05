@@ -171,6 +171,12 @@ mg prompt-graph -g graphs/main.graph.json
 | `decide` | Decide (decision point analysis, option selection, trade-off analysis) |
 | `decompose` | Decompose (generate task lists from docs, break PRD into stories) |
 | `verify` | Verify (consistency check, fact-check, logic validation) |
+| `synthesize` | Synthesize (derive new insights/frameworks from multiple sources) |
+| `evaluate` | Evaluate (judge quality, feasibility, completeness — subjective) |
+| `brainstorm` | Brainstorm (divergent thinking, generate multiple directions/options) |
+| `prioritize` | Prioritize (rank by priority, schedule tasks, sort features) |
+| `classify` | Classify (label, categorize, sentiment classification) |
+| `infer` | Infer (deduce root causes from symptoms, derive trends from data) |
 
 **Composite / Custom**:
 

@@ -8,6 +8,7 @@ export type TransformType =
   | 'merge' | 'compare' | 'compress' | 'split'
   | 'translate' | 'format' | 'annotate'
   | 'analyze' | 'project' | 'decide' | 'decompose' | 'verify'
+  | 'synthesize' | 'evaluate' | 'brainstorm' | 'prioritize' | 'classify' | 'infer'
   | 'chain' | 'custom';
 
 export const TRANSFORM_TYPES: TransformType[] = [
@@ -15,6 +16,7 @@ export const TRANSFORM_TYPES: TransformType[] = [
   'merge', 'compare', 'compress', 'split',
   'translate', 'format', 'annotate',
   'analyze', 'project', 'decide', 'decompose', 'verify',
+  'synthesize', 'evaluate', 'brainstorm', 'prioritize', 'classify', 'infer',
   'chain', 'custom',
 ];
 

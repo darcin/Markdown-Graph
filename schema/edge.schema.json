@@ -84,6 +84,7 @@
             "merge", "compare", "compress", "split",
             "translate", "format", "annotate",
             "analyze", "project", "decide", "decompose", "verify",
+            "synthesize", "evaluate", "brainstorm", "prioritize", "classify", "infer",
             "chain", "custom"
           ],
           "description": "Type of transformation"
