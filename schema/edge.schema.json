@@ -22,12 +22,31 @@
       "minItems": 1,
       "description": "Output node IDs"
     },
+    "prompt_nodes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Prompt document node IDs (separate from input sources for clarity)"
+    },
     "transform": {
       "$ref": "#/definitions/Transform"
     },
     "context": {
       "type": "string",
       "description": "Additional context or system prompt summary"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session identifier for grouping edges in a conversation session"
+    },
+    "supersedes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Edge IDs that this edge supersedes (undo/retry chain)"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Attempt number for retries (optional, for readability)"
     },
     "timestamp": {
       "type": "string",
@@ -38,6 +57,18 @@
       "type": "object",
       "description": "Additional arbitrary metadata",
       "additionalProperties": true
+    },
+    "review": {
+      "$ref": "review.schema.json",
+      "description": "User review and QA record for this edge's output"
+    },
+    "analytics": {
+      "$ref": "analytics.schema.json",
+      "description": "Adoption and quality analytics"
+    },
+    "template_ref": {
+      "type": "string",
+      "description": "Template ID if this edge was created from a template"
     }
   },
   "additionalProperties": false,
@@ -51,7 +82,9 @@
           "enum": [
             "extract", "expand", "create", "rewrite",
             "merge", "compare", "compress", "split",
-            "translate", "format", "annotate", "chain", "custom"
+            "translate", "format", "annotate",
+            "analyze", "project", "decide", "decompose", "verify",
+            "chain", "custom"
           ],
           "description": "Type of transformation"
         },

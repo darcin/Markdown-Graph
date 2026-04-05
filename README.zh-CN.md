@@ -9,25 +9,94 @@
 每一轮 AI 对话本质上是一个转换函数：
 
 ```
-f(x, y, z, ...) → x', y', ...
+f(prompt, x, y, z, ...) → x', y', ...
 ```
 
 - **节点 (Node)**：Markdown 文档（或文档片段），是图中的顶点
+- **Prompt 节点**：完整的 Prompt 也作为文档节点存储，可追溯、可复用
 - **有向边 (Edge)**：一轮对话 / 一次转换操作，连接输入文档到输出文档
-- **边属性**：描述这次转换的完整上下文 —— 使用的 agent、model、skills、转换类型、prompt 摘要等
+- **边属性**：描述这次转换的完整上下文 —— agent、model、skills、转换类型、prompt 摘要、review 记录、session、重试链等
 
 通过这种建模，文档的每一次演变都可被追溯、复现、分支和合并。
 
-## 数据模型
+```mermaid
+graph LR
+    P[Prompt] -.->|prompt| B
+    A[原始笔记] -->|rewrite| B[结构化纪要]
+    B -->|extract| C[行动项]
+    B -->|compare| D[方案对比]
+    B -->|merge| E[PRD]
+    C -->|merge| E
+    D -->|merge| E
+```
 
+## 安装
+
+```bash
+cd src
+npm install
+npm run build
 ```
-┌─────────┐    Edge (conversation)     ┌─────────┐
-│  doc_a   │ ──────────────────────────→│  doc_a'  │
-│  doc_b   │   transform: "merge"      │          │
-│  doc_c   │   agent: "copilot"        └─────────┘
-└─────────┘   model: "claude-opus-4"
-              skills: ["writing"]
+
+构建完成后即可使用 CLI 工具：
+
+```bash
+node dist/cli/index.js --help
 ```
+
+## CLI 命令
+
+| 命令 | 说明 | 对应 Slash Command |
+|------|------|--------------------|
+| `mg init` | 初始化项目结构（创建 docs/ graphs/ templates/ prompts/ inline/） | — |
+| `mg record` | 记录一条转换边 | `/record` |
+| `mg validate` | 校验图一致性（断链、缺失文件、孤立节点） | — |
+| `mg stats` | 统计分析（节点/边数、类型分布、采纳率） | `/stats` |
+| `mg viz` | 可视化文档关系图（Mermaid / HTML） | `/markdowngraph` |
+| `mg prompt-graph` | Prompt 转换链路图 | `/promptgraph` |
+| `mg design-health` | 文档健康度 & 可溯源性评估 | `/designhealth` |
+| `mg session-health` | Session 上下文健康度评估 | `/sessionhealth` |
+
+### 使用示例
+
+```bash
+# 初始化项目
+mg init
+
+# 记录一条边：将 a.md 和 b.md 合并为 c.md
+mg record -t merge -s docs/a.md docs/b.md -o docs/c.md -d "合并会议纪要和调研"
+
+# 记录边并关联 Prompt 文件
+mg record -t rewrite -s docs/notes.md -o docs/summary.md \
+  -p prompts/rewrite.md --session sess-001
+
+# 记录重试（取代前一条边）
+mg record -t rewrite -s docs/notes.md -o docs/summary-v2.md \
+  -p prompts/rewrite-v2.md --supersedes e-20260405-abc --attempt 2
+
+# 校验图
+mg validate -g graphs/main.graph.json
+
+# 统计
+mg stats -g graphs/main.graph.json
+
+# 生成 Mermaid 可视化
+mg viz -g graphs/main.graph.json
+
+# 生成 HTML 可视化
+mg viz -g graphs/main.graph.json -o html --file graph.html
+
+# 文档健康度评估
+mg design-health -g graphs/main.graph.json
+
+# Session 健康度（分析最近 5 条边）
+mg session-health -g graphs/main.graph.json --last 5
+
+# Prompt 链路图
+mg prompt-graph -g graphs/main.graph.json
+```
+
+## 数据模型
 
 ### Node（文档节点）
 
@@ -39,6 +108,8 @@ f(x, y, z, ...) → x', y', ...
 | `tags` | string[] | 标签 |
 | `created_at` | ISO 8601 | 创建时间 |
 | `checksum` | string | 内容哈希，用于版本追踪 |
+| `source_type` | enum | 内容来源：`file`(默认) / `paste` / `clipboard` / `stdin` |
+| `phantom` | boolean | 被撤回的边生成的节点标记为 `true` |
 
 ### Edge（转换边）
 
@@ -46,113 +117,129 @@ f(x, y, z, ...) → x', y', ...
 |------|------|------|
 | `id` | string | 唯一标识 |
 | `sources` | string[] | 输入节点 ID 列表 |
+| `prompt_nodes` | string[] | Prompt 文档节点 ID 列表（可选） |
 | `targets` | string[] | 输出节点 ID 列表 |
 | `transform` | Transform | 转换描述 |
-| `context` | string | 额外上下文 / system prompt 摘要 |
+| `context` | string | 额外上下文 |
+| `session_id` | string | 所属会话 ID（可选） |
+| `supersedes` | string[] | 取代的前序边 ID（撤回/重试，可选） |
+| `attempt` | number | 第几次尝试（可选） |
 | `timestamp` | ISO 8601 | 执行时间 |
+| `review` | Review | 用户审核记录（可选） |
+| `analytics` | Analytics | 采用率数据（可选） |
+| `template_ref` | string | 引用的模板 ID（可选） |
 
 ### Transform（转换描述）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `type` | string | 转换类型（见下方枚举） |
+| `type` | enum | 转换类型（见下方） |
 | `description` | string | 本轮对话的方向性描述 |
 | `agent` | string | 使用的 agent |
 | `model` | string | 使用的模型 |
 | `skills` | string[] | 使用的 skills |
-| `prompt_summary` | string | prompt 摘要（非完整 prompt） |
+| `prompt_summary` | string | prompt 摘要 |
 
-### 转换类型枚举
+### Review（审核记录）
 
-| 类型 | 说明 | 示例 |
+| 字段 | 类型 | 说明 |
 |------|------|------|
-| `extract` | 提炼 / 摘要 | 从长文中提取关键点 |
-| `expand` | 扩写 | 将大纲扩写为完整段落 |
-| `create` | 新建 | 从零开始生成文档 |
-| `rewrite` | 改写 | 调整风格、语气、格式 |
-| `merge` | 整合 | 多文档合并为一 |
-| `compare` | 对比 | 生成对比分析 |
-| `compress` | 压缩 | 精简内容 |
-| `split` | 拆分 | 一个文档拆为多个 |
-| `translate` | 翻译 | 语言转换 |
-| `format` | 格式化 | 转为 Markdown 表格、列表等 |
-| `annotate` | 标注 | 添加注释、批注 |
-| `chain` | 链式 | 多步骤复合转换 |
-| `custom` | 自定义 | 其他未列举的转换类型 |
+| `status` | enum | `accepted` / `revised` / `rejected` |
+| `revision_notes` | string | 修改说明 |
+| `qa` | QAPair[] | 问答对 `[{q, a}]` |
+| `final_action` | enum | 最终动作 |
+
+### 转换类型
+
+**文本操作**：
+
+| 类型 | 说明 | 类型 | 说明 |
+|------|------|------|------|
+| `extract` | 提炼 / 摘要 | `split` | 拆分 |
+| `expand` | 扩写 | `translate` | 翻译 |
+| `create` | 新建 | `format` | 格式化 |
+| `rewrite` | 改写 | `annotate` | 标注 |
+| `merge` | 整合 | `compress` | 压缩 |
+| `compare` | 对比 | | |
+
+**认知操作**：
+
+| 类型 | 说明 |
+|------|------|
+| `analyze` | 分析（视角分析、SWOT、因果分析等） |
+| `project` | 推演（影响推演、what-if 模拟、趋势预测） |
+| `decide` | 决策（决策点推演、方案选型、trade-off 分析） |
+| `decompose` | 分解（从文档生成任务列表、从 PRD 拆 story） |
+| `verify` | 验证（一致性检查、fact-check、逻辑校验） |
+
+**复合 / 自定义**：
+
+| 类型 | 说明 |
+|------|------|
+| `chain` | 链式（多步骤复合转换） |
+| `custom` | 自定义 |
 
 ## 项目结构
 
 ```
 markdown-graph/
-├── README.md                   # English version
-├── README.zh-CN.md             # 本文件（中文版）
-├── schema/
-│   ├── node.schema.json        # 节点 JSON Schema
-│   ├── edge.schema.json        # 边 JSON Schema
-│   └── graph.schema.json       # 图 JSON Schema（引用上述两者）
-├── docs/                       # 文档节点存放目录
-│   └── .gitkeep
-├── graphs/                     # 图定义文件
-│   └── example.graph.json      # 示例图
-└── examples/                   # 使用示例
-    └── simple-merge/           # 示例：合并两个文档
-        ├── input-a.md / input-a.en.md
-        ├── input-b.md / input-b.en.md
-        ├── output.md / output.en.md
-        └── edge.json
-```
-
-## 快速开始
-
-1. 在 `docs/` 中放置你的 Markdown 文档
-2. 在 `graphs/` 中创建图定义文件，描述文档间的转换关系
-3. 每次 AI 对话后，记录一条 edge 到图中
-
-```jsonc
-// graphs/my-project.graph.json
-{
-  "nodes": [
-    { "id": "n1", "path": "docs/raw-notes.md", "title": "原始笔记" },
-    { "id": "n2", "path": "docs/summary.md", "title": "精炼摘要" }
-  ],
-  "edges": [
-    {
-      "id": "e1",
-      "sources": ["n1"],
-      "targets": ["n2"],
-      "transform": {
-        "type": "extract",
-        "description": "从原始笔记中提炼核心观点",
-        "agent": "copilot",
-        "model": "claude-opus-4",
-        "skills": [],
-        "prompt_summary": "提取关键信息，保留核心论点"
-      },
-      "timestamp": "2026-04-05T10:00:00Z"
-    }
-  ]
-}
+├── README.md / README.zh-CN.md     # 项目说明
+├── DESIGN.md                       # 设计文档
+├── IMPLEMENTATION.md               # 实施计划
+├── schema/                         # JSON Schema
+│   ├── node.schema.json
+│   ├── edge.schema.json            # 含 review/analytics/template_ref
+│   ├── graph.schema.json
+│   ├── review.schema.json
+│   ├── template.schema.json
+│   └── analytics.schema.json
+├── src/                            # CLI 源代码 (TypeScript)
+│   ├── core/                       # 核心库
+│   │   ├── types.ts                # 类型定义
+│   │   ├── graph.ts                # 图操作（CRUD、查询、Mermaid）
+│   │   ├── health.ts               # 健康度评估
+│   │   └── analytics.ts            # 统计分析
+│   └── cli/                        # CLI 入口 & 命令
+│       ├── index.ts
+│       └── commands/               # 8 个命令
+├── docs/                           # 文档节点
+├── prompts/                        # Prompt 文档（完整 prompt 存为 .md）
+├── inline/                         # 粘贴/内联内容物化文件
+├── graphs/                         # 图定义文件
+├── templates/                      # 可复用边模板
+└── examples/
+    ├── simple-merge/               # 简单合并示例
+    └── full-chain/                 # 完整链路示例（5 文档 4 条边）
 ```
 
 ## 设计理念
 
-> 详细设计、入口点和功能路线图，请参阅 [DESIGN.zh-CN.md](DESIGN.zh-CN.md)（[English](DESIGN.md)）
-
 - **文档即代码**：用 Git 管理文档版本，用 JSON 描述文档间关系
-- **可追溯**：每次转换都有完整的上下文记录
-- **可组合**：转换可以链式组合，构建复杂的文档工程流水线
-- **模型无关**：不绑定特定 AI 模型或工具，只关注转换的描述
-- **渐进式**：先手动记录，后续可开发工具自动化
+- **Prompt 即文档**：Prompt 作为一等公民节点存储，可追溯、可版本管理
+- **可追溯**：每次转换都有完整的上下文记录和 review 记录
+- **可撤回**：支持 session 分组、重试链（supersedes）、幽灵节点
+- **可评估**：健康度评分、采用率追踪、session 分析
+- **可组合**：转换可以链式组合，高频模式可抽象为模板
+- **模型无关**：不绑定特定 AI 模型或工具
+- **渐进式**：手动 JSON → CLI → VS Code 扩展 → Agent/Skill
 
 ## Roadmap
 
 - [x] 数据模型设计 & Schema 定义
-- [ ] CLI 工具：自动记录对话为 edge
-- [ ] 图可视化（基于 Mermaid / D3.js）
-- [ ] VS Code 扩展：对话结束后自动追加 edge
-- [ ] 图的校验 & 一致性检查
-- [ ] 支持子图 / 模板复用
+- [x] CLI 工具（init / record / validate / stats / viz / prompt-graph / design-health / session-health）
+- [x] Review / Template / Analytics Schema
+- [x] 完整链路示例
+- [x] Prompt 作为文档节点 + prompt_nodes 字段
+- [x] Session / 撤回 / 重试支持（session_id / supersedes / attempt）
+- [x] 内联内容支持（source_type / phantom）
+- [ ] npm 发布
+- [ ] VS Code 扩展：对话后自动记录 edge
+- [ ] 图的交互式 HTML 可视化
+- [ ] 边模板推荐 & 采用率追踪
+- [ ] Agent/Skill 集成
 
 ## License
+
+MIT
 
 MIT

@@ -1,0 +1,188 @@
+{
+  "version": "0.1.0",
+  "name": "full-chain-example",
+  "description": "完整链路示例：从原始笔记到 PRD 的文档工程全过程",
+  "nodes": [
+    {
+      "id": "n-raw",
+      "path": "examples/full-chain/01-raw-notes.md",
+      "title": "原始会议笔记",
+      "tags": ["meeting", "raw"],
+      "created_at": "2026-04-01T14:00:00Z"
+    },
+    {
+      "id": "n-structured",
+      "path": "examples/full-chain/02-structured-notes.md",
+      "title": "结构化会议纪要",
+      "tags": ["meeting", "structured"],
+      "created_at": "2026-04-01T15:00:00Z"
+    },
+    {
+      "id": "n-actions",
+      "path": "examples/full-chain/03-action-items.md",
+      "title": "行动项清单",
+      "tags": ["action-items"],
+      "created_at": "2026-04-01T15:30:00Z"
+    },
+    {
+      "id": "n-prd",
+      "path": "examples/full-chain/04-prd.md",
+      "title": "v2.1 PRD",
+      "tags": ["prd", "planning"],
+      "created_at": "2026-04-02T10:00:00Z"
+    },
+    {
+      "id": "n-comparison",
+      "path": "examples/full-chain/05-search-comparison.md",
+      "title": "搜索方案对比",
+      "tags": ["research", "comparison"],
+      "created_at": "2026-04-01T16:00:00Z"
+    },
+    {
+      "id": "p-rewrite-meeting",
+      "path": "examples/full-chain/prompts/rewrite-meeting.md",
+      "title": "会议纪要改写 Prompt",
+      "tags": ["prompt"],
+      "created_at": "2026-04-01T14:30:00Z"
+    },
+    {
+      "id": "p-extract-actions",
+      "path": "examples/full-chain/prompts/extract-actions.md",
+      "title": "行动项提取 Prompt",
+      "tags": ["prompt"],
+      "created_at": "2026-04-01T15:15:00Z"
+    },
+    {
+      "id": "p-merge-prd",
+      "path": "examples/full-chain/prompts/merge-prd.md",
+      "title": "PRD 合并 Prompt",
+      "tags": ["prompt"],
+      "created_at": "2026-04-02T09:30:00Z"
+    },
+    {
+      "id": "n-structured-v1",
+      "path": "examples/full-chain/02-structured-notes-v1.md",
+      "title": "结构化会议纪要 (v1, 已撤回)",
+      "tags": ["meeting", "structured"],
+      "phantom": true,
+      "created_at": "2026-04-01T14:45:00Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-chain-00",
+      "sources": ["n-raw"],
+      "prompt_nodes": ["p-rewrite-meeting"],
+      "targets": ["n-structured-v1"],
+      "transform": {
+        "type": "rewrite",
+        "description": "第一次尝试改写，结构不够清晰",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "prompt_summary": "将笔记整理为结构化纪要"
+      },
+      "session_id": "sess-meeting-01",
+      "attempt": 1,
+      "review": {
+        "status": "rejected",
+        "revision_notes": "格式不符合要求，缺少优先级"
+      },
+      "timestamp": "2026-04-01T14:45:00Z"
+    },
+    {
+      "id": "e-chain-01",
+      "sources": ["n-raw"],
+      "prompt_nodes": ["p-rewrite-meeting"],
+      "targets": ["n-structured"],
+      "transform": {
+        "type": "rewrite",
+        "description": "将口语化的原始笔记重写为结构化会议纪要",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "skills": [],
+        "prompt_summary": "按议题分类，提取关键决策和行动项"
+      },
+      "session_id": "sess-meeting-01",
+      "supersedes": ["e-chain-00"],
+      "attempt": 2,
+      "review": {
+        "status": "revised",
+        "revision_notes": "补充了优先级表格",
+        "final_action": "revised_and_accepted"
+      },
+      "timestamp": "2026-04-01T15:00:00Z"
+    },
+    {
+      "id": "e-chain-02",
+      "sources": ["n-structured"],
+      "prompt_nodes": ["p-extract-actions"],
+      "targets": ["n-actions"],
+      "transform": {
+        "type": "extract",
+        "description": "从结构化纪要中提取行动项清单",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "skills": [],
+        "prompt_summary": "按负责人分组，标注截止日期"
+      },
+      "session_id": "sess-meeting-01",
+      "review": {
+        "status": "accepted",
+        "final_action": "accepted"
+      },
+      "timestamp": "2026-04-01T15:30:00Z"
+    },
+    {
+      "id": "e-chain-03",
+      "sources": ["n-structured"],
+      "targets": ["n-comparison"],
+      "transform": {
+        "type": "compare",
+        "description": "对会议中提到的搜索方案做对比分析",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "skills": [],
+        "prompt_summary": "从多维度对比 ES 和 MeiliSearch"
+      },
+      "session_id": "sess-meeting-01",
+      "review": {
+        "status": "accepted",
+        "qa": [
+          {
+            "q": "PostgreSQL FTS 不考虑吗？",
+            "a": "中文分词支持太弱，不适合我们的场景"
+          }
+        ],
+        "final_action": "accepted"
+      },
+      "timestamp": "2026-04-01T16:00:00Z"
+    },
+    {
+      "id": "e-chain-04",
+      "sources": ["n-structured", "n-actions", "n-comparison"],
+      "prompt_nodes": ["p-merge-prd"],
+      "targets": ["n-prd"],
+      "transform": {
+        "type": "merge",
+        "description": "整合会议纪要、行动项和技术调研为完整 PRD",
+        "agent": "copilot",
+        "model": "claude-opus-4",
+        "skills": [],
+        "prompt_summary": "写出包含功能需求、验收标准、时间线的完整 PRD"
+      },
+      "session_id": "sess-prd-01",
+      "review": {
+        "status": "revised",
+        "revision_notes": "调整了时间线，增加了内测里程碑",
+        "qa": [
+          {
+            "q": "导出功能的验收标准是否太简单？",
+            "a": "P2 功能先简单定义，后续迭代再细化"
+          }
+        ],
+        "final_action": "revised_and_accepted"
+      },
+      "timestamp": "2026-04-02T10:00:00Z"
+    }
+  ]
+}

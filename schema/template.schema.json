@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/markdown-graph/schema/template.schema.json",
+  "title": "Edge Template",
+  "description": "A reusable transformation template derived from historical edges",
+  "type": "object",
+  "required": ["template_id", "name", "transform"],
+  "properties": {
+    "template_id": {
+      "type": "string",
+      "description": "Unique template identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable template name"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this template does"
+    },
+    "transform": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "extract", "expand", "create", "rewrite",
+            "merge", "compare", "compress", "split",
+            "translate", "format", "annotate", "chain", "custom"
+          ]
+        },
+        "prompt_template": {
+          "type": "string",
+          "description": "Parameterized prompt template"
+        },
+        "recommended_model": {
+          "type": "string",
+          "description": "Recommended model for this template"
+        },
+        "recommended_agent": {
+          "type": "string",
+          "description": "Recommended agent"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "usage_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of times this template has been used"
+        },
+        "adoption_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Ratio of accepted outputs"
+        },
+        "avg_revision_rounds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Average revision rounds before acceptance"
+        },
+        "derived_from": {
+          "type": ["string", "null"],
+          "description": "Edge ID this template was derived from"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

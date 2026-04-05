@@ -8,7 +8,8 @@ Thumbs.db
 *.swo
 *~
 
-# Node (future CLI tool)
+# Node
 node_modules/
 dist/
 *.log
+src/dist/

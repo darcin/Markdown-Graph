@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/markdown-graph/schema/analytics.schema.json",
+  "title": "Edge Analytics",
+  "description": "Adoption and quality analytics for an edge",
+  "type": "object",
+  "required": ["edge_id"],
+  "properties": {
+    "edge_id": {
+      "type": "string",
+      "description": "Reference to the edge being analyzed"
+    },
+    "adoption": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["adopted", "partial", "abandoned"],
+          "description": "Whether the output was adopted"
+        },
+        "adopted_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Ratio of target content retained in final documents"
+        },
+        "time_to_adopt": {
+          "type": "string",
+          "description": "ISO 8601 duration from generation to adoption"
+        },
+        "downstream_edges": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Edge IDs that reference this edge's output"
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality_signals": {
+      "type": "object",
+      "properties": {
+        "revision_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of revisions before final acceptance"
+        },
+        "user_rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "User quality rating"
+        },
+        "was_template_created": {
+          "type": "boolean",
+          "description": "Whether this edge was abstracted into a template"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
